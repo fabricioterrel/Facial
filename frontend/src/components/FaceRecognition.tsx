@@ -11,7 +11,13 @@ export const FaceRecognition: React.FC = () => {
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  
+  // Ref para controlar el intervalo de escaneo continuo
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  
+  // Ref para evitar peticiones simultáneas si la API tarda en responder
+  const isProcessingRef = useRef<boolean>(false);
+
   useEffect(() => {
     iniciarCamara();
     return () => {
@@ -20,7 +26,7 @@ export const FaceRecognition: React.FC = () => {
     };
   }, []);
 
-  // Efecto para controlar la lectura continua en tiempo real cuando se activa el switch/escaneo
+  // Efecto para controlar la lectura continua en tiempo real
   useEffect(() => {
     if (escanearContinuo) {
       intervalRef.current = setInterval(() => {
@@ -60,17 +66,18 @@ export const FaceRecognition: React.FC = () => {
     }
   };
 
-  // FUNCIÓN NÚCLEO DE IDENTIFICACIÓN (Uso manual o en bucle continuo)
+  // FUNCIÓN NÚCLEO DE IDENTIFICACIÓN
   const ejecutarIdentificacion = async () => {
-    if (!videoRef.current || loading) return;
+    // Si no hay video o ya hay una petición en curso, saltamos este fotograma
+    if (!videoRef.current || isProcessingRef.current) return;
 
+    isProcessingRef.current = true;
     setLoading(true);
 
     try {
       const blob = await capturarImagenDesdeVideo(videoRef.current);
       if (!blob) {
         setMensaje('Error al capturar el fotograma');
-        setLoading(false);
         return;
       }
 
@@ -101,13 +108,14 @@ export const FaceRecognition: React.FC = () => {
       }
     } catch (err: any) {
       console.error('❌ Error durante la petición:', err);
-      setMensaje(`Error: ${err.message}`);
+      setMensaje(`Error: ${err.message || 'Error en el servidor'}`);
     } finally {
       setLoading(false);
+      isProcessingRef.current = false;
     }
   };
 
-  // Manejador del botón único de clic
+  // Manejador del botón manual de clic
   const handleIdentificar = () => {
     console.clear();
     console.log('📸 [EVENTO CLIC]: Iniciando captura e identificación...');

@@ -1,5 +1,6 @@
 fastapi
 uvicorn
+dlib-bin
 supabase
 python-dotenv
 face_recognition

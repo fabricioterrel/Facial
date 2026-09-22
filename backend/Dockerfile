@@ -1,22 +1,20 @@
-FROM python:3.10-slim
+FROM python:3.9-slim
 
-# Instalar librerías nativas del sistema que necesita OpenCV
+# Dependencias mínimas de OpenCV y compilador pre-requerido
 RUN apt-get update && apt-get install -y \
     build-essential \
     cmake \
-    libopenblas-dev \
-    liblapack-dev \
     libgl1 \
     libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-COPY requirements.txt .
+# Descargar e instalar la rueda precompilada (wheel) de dlib para Linux sin usar RAM
+RUN pip install --no-cache-dir https://github.com/dlib-models/dlib-wheels/releases/download/v19.22/dlib-19.22.99-cp39-cp39-linux_x86_64.whl
 
-# Forzar la instalación de dlib-bin precompilado PRIMERO y evitar que pip compile código fuente
-RUN pip install --no-cache-dir dlib-bin
-RUN pip install --no-cache-dir --only-binary=:all: -r requirements.txt || pip install --no-cache-dir -r requirements.txt
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 

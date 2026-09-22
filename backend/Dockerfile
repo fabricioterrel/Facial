@@ -1,6 +1,6 @@
-FROM python:3.9-slim
+FROM python:3.10-slim
 
-# Dependencias mínimas de OpenCV y compilador pre-requerido
+# Dependencias necesarias para OpenCV y C++
 RUN apt-get update && apt-get install -y \
     build-essential \
     cmake \
@@ -10,10 +10,12 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /app
 
-# Descargar e instalar la rueda precompilada (wheel) de dlib para Linux sin usar RAM
-RUN pip install --no-cache-dir https://github.com/dlib-models/dlib-wheels/releases/download/v19.22/dlib-19.22.99-cp39-cp39-linux_x86_64.whl
-
+# Copiar requerimientos
 COPY requirements.txt .
+
+# Instalar dlib-bin e ignorar la compilación desde fuentes
+RUN pip install --no-cache-dir dlib-bin
+RUN pip install --no-cache-dir --no-deps face-recognition
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .

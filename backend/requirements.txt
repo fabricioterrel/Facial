@@ -1,9 +1,9 @@
 fastapi
 uvicorn
-dlib-bin
+opencv-python-headless
+face_recognition
 supabase
 python-dotenv
-face_recognition
 numpy
 pillow
 python-multipart

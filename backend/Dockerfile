@@ -1,6 +1,6 @@
 FROM python:3.10-slim
 
-# Instalar dependencias del sistema para CMake, dlib y OpenCV (libgl1 corregido)
+# Instalar dependencias esenciales del sistema
 RUN apt-get update && apt-get install -y \
     build-essential \
     cmake \
@@ -12,11 +12,14 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /app
 
-# Copiar e instalar librerías de Python
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# 1. Instalar dlib-bin PRIMERO para evitar que face-recognition intente compilar dlib
+RUN pip install --no-cache-dir dlib-bin
 
-# Copiar el código del backend
+# 2. Copiar e instalar el resto de paquetes sin compilar dlib
+COPY requirements.txt .
+RUN pip install --no-cache-dir --no-build-isolation -r requirements.txt
+
+# 3. Copiar el proyecto
 COPY . .
 
 # Comando de inicio
